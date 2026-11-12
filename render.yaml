@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: omnimeet
+    runtime: docker
+    plan: starter
+    region: singapore
+    dockerfilePath: ./backend-gateway/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    disk:
+      name: omnimeet-data
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: SQLITE_DB_PATH
+        value: /app/data/omnimeet.db
+      - key: MEDIA_TRANSPORT_MODE
+        value: sfu
+      - key: ENABLE_LOCAL_ASR
+        value: "false"
+      - key: LIVEKIT_URL
+        sync: false
+      - key: LIVEKIT_API_KEY
+        sync: false
+      - key: LIVEKIT_API_SECRET
+        sync: false
+      - key: TRANSLATION_PROVIDER
+        value: argos
+      - key: ARGOS_AUTO_INSTALL_MODELS
+        value: "true"
+      - key: ARGOS_PACKAGES_DIR
+        value: /app/data/argos-packages
+      - key: XDG_DATA_HOME
+        value: /app/data/argos-state
+      - key: ARGOS_CHUNK_TYPE
+        value: MINISBD
+      - key: ARGOS_DEVICE_TYPE
+        value: cpu
+      - key: ARGOS_COMPUTE_TYPE
+        value: int8
