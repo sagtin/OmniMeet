@@ -106,13 +106,11 @@ class TranslationEngine:
             # Do not log request URLs because they contain the API key.
             return None
 
+    
     def translate(self, text: str, source_lang: str = "auto", target_lang: str = "en") -> Dict[str, Any]:
-        """
-        Translates text from source_lang to target_lang.
-        Returns: { 'translated_text': str, 'source_lang': str, 'target_lang': str, 'latency_ms': float }
-        """
+        """Translate text and return a consistent result."""
         start_time = time.time()
-        text = text.strip()
+        text = (text or "").strip()
 
         if not text:
             return {
@@ -122,18 +120,6 @@ class TranslationEngine:
                 "latency_ms": 0.0
             }
 
-        # If source language is already target language, pass through
-        if source_lang.lower() == target_lang.lower():
-            return {
-                "translated_text": text,
-                "source_lang": source_lang,
-                "target_lang": target_lang,
-                "latency_ms": (time.time() - start_time) * 1000
-            }
-
-        # Normalize language codes
-       
-        # Normalize language codes for Argos Translate
         language_map = {
             "english": "en",
             "en-in": "en",
@@ -155,26 +141,27 @@ class TranslationEngine:
         norm_src = language_map.get(source_code, source_code.split("-")[0])
         norm_target = language_map.get(target_code, target_code.split("-")[0])
 
-        # If source and target are the same, return original text
         if norm_src == norm_target:
             translated = text
+        elif self.translation_provider == "google":
+            translated = self._translate_with_google_cloud(
+                text, norm_src, norm_target
+            )
         else:
-            translated = None
-            if self.translation_provider == "google":
-                translated = self._translate_with_google_cloud(
-                    text, norm_src, norm_target
-                )
-            else:
-                translated = self._translate_with_argos(
-                    text, norm_src, norm_target
-                )
+            translated = self._translate_with_argos(
+                text, norm_src, norm_target
+            )
 
-                translated_fallback = translated or f"[Translated to {target_lang.upper()}]: {text}"
+        if not translated:
+            print(
+                f"[Translation] Translation unavailable: "
+                f"{norm_src} -> {norm_target}"
+            )
+            translated = f"[Translation unavailable: {norm_target.upper()}] {text}"
 
-                return {
-                    "translated_text": translated_fallback,
-                    "source_lang": source_lang,
-                    "target_lang": target_lang,
-                    "latency_ms": (time.time() - start_time) * 1000
-                }
-
+        return {
+            "translated_text": translated,
+            "source_lang": source_lang,
+            "target_lang": target_lang,
+            "latency_ms": (time.time() - start_time) * 1000
+        }
