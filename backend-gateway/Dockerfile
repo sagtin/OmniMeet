@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python requirements
-COPY backend-gateway/requirements.txt /app/backend-gateway/
+COPY backend-gateway/requirements*.txt /app/backend-gateway/
 RUN pip install --no-cache-dir -r /app/backend-gateway/requirements.txt
 RUN pip install --no-cache-dir -r /app/backend-gateway/requirements-translation.txt
 RUN pip install --no-cache-dir --no-deps "argostranslate>=1.9.6,<2.0"
